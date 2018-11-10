@@ -1,2 +1,3 @@
 # VerticalPlotter
 My steps to make a vertical plotter!
+My first step is to vectorize a bitmap image...
