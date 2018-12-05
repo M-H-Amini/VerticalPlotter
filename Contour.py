@@ -25,11 +25,43 @@ def draw(polar_contour,center):
     points=[]
     for q in polar_contour:
         point=pol2Car(q,center)
-        print(point)
+        #print(point)
         points.append(point)
         image[int(point[0]),int(point[1])]=0
     cv2.imshow('result',image)
-    
+
+def regressor1(point1,point2):
+    return [int((point1[0]+point2[0])/2),int((point1[1]+point2[1])/2)]
+
+def regression1(contour):
+    points_counter=0
+    points_flag=True
+    temp=contour.copy()
+    size=len(contour)
+    outer_while_counter=0
+    while points_flag:
+        outer_while_counter+=1
+        print('outer {}'.format(outer_while_counter))
+        i=0
+        print('before {}'.format(len(temp)))
+        points_counter=0
+        points_flag=False
+        while i<size:
+            if ((temp[i][0]-temp[i-1][0])**2+(temp[i][1]-temp[i-1][1])**2)>2:
+                points_flag=True
+                print('Points {} and {} : Distance = {}'.format(temp[i],temp[i-1],((temp[i][0]-temp[i-1][0])**2+(temp[i][1]-temp[i-1][1])**2)))
+                point=regressor1(temp[i],temp[i-1])
+                #print(point)
+                #print('index {} len {}'.format(i+points_counter,len(temp)))
+                temp.insert(i+points_counter,point)
+                points_counter+=1
+            i+=1
+        print('after {}'.format(len(temp)))
+        size=len(temp)
+        if outer_while_counter==3:
+            break
+    return temp
+
 im = cv2.imread('Sample2.jpg')
 imgray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
 ret,thresh = cv2.threshold(imgray,127,255,0)
@@ -52,12 +84,19 @@ print(a)
 b=pol2Car(a,center)
 print(b)
 '''
+
 imcontours=im.copy()
 cv2.circle(imcontours,(cx,cy),10,(0,255,0))
 cv2.drawContours(imcontours, contours, 1, (0,255,0), 3)
 cv2.imshow('Contours',imcontours)
-polar_contour=[car2Pol([i,j],[cx,cy]) for [[i,j]] in cnt]
+cnt=np.reshape(cnt,(404,2))
+cnt=np.ndarray.tolist(cnt)
+polar_contour=[car2Pol([i,j],[cx,cy]) for [i,j] in cnt]
 draw(polar_contour,center)
+cnt=regression1(cnt)
+polar_contour=[car2Pol([i,j],[cx,cy]) for [i,j] in cnt]
+draw(polar_contour,center)
+#print(cnt)
 #print(polar_contour)
 #cv2.imshow('Original',im)
 #cv2.imshow('Grayscaled',imgray)
