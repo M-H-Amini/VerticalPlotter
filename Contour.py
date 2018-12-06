@@ -35,31 +35,22 @@ def regressor1(point1,point2):
 
 def regression1(contour):
     points_counter=0
-    points_flag=True
     temp=contour.copy()
     size=len(contour)
-    outer_while_counter=0
-    while points_flag:
-        outer_while_counter+=1
-        print('outer {}'.format(outer_while_counter))
-        i=0
-        print('before {}'.format(len(temp)))
-        points_counter=0
-        points_flag=False
-        while i<size:
-            if ((temp[i][0]-temp[i-1][0])**2+(temp[i][1]-temp[i-1][1])**2)>2:
-                points_flag=True
-                print('Points {} and {} : Distance = {}'.format(temp[i],temp[i-1],((temp[i][0]-temp[i-1][0])**2+(temp[i][1]-temp[i-1][1])**2)))
-                point=regressor1(temp[i],temp[i-1])
-                #print(point)
-                #print('index {} len {}'.format(i+points_counter,len(temp)))
-                temp.insert(i+points_counter,point)
-                points_counter+=1
-            i+=1
-        print('after {}'.format(len(temp)))
-        size=len(temp)
-        if outer_while_counter==3:
-            break
+    print('before {}'.format(len(temp)))
+    i=0
+    points_counter=0
+    while i<size:
+        if ((temp[i+points_counter][0]-temp[i+points_counter-1][0])**2+(temp[i+points_counter][1]-temp[i+points_counter-1][1])**2)>2:
+            print('Points {} and {} : Distance = {}'.format(temp[i],temp[i-1],((temp[i][0]-temp[i-1][0])**2+(temp[i][1]-temp[i-1][1])**2)))
+            point=regressor1(temp[i+points_counter],temp[i+points_counter-1])
+            #print(point)
+            #print('index {} len {}'.format(i+points_counter,len(temp)))
+            temp.insert(i+points_counter,point)
+            points_counter+=1
+        i+=1
+    print('after {}'.format(len(temp)))
+    size=len(temp)
     return temp
 
 im = cv2.imread('Sample2.jpg')
@@ -93,6 +84,9 @@ cnt=np.reshape(cnt,(404,2))
 cnt=np.ndarray.tolist(cnt)
 polar_contour=[car2Pol([i,j],[cx,cy]) for [i,j] in cnt]
 draw(polar_contour,center)
+cnt=regression1(cnt)
+cnt=regression1(cnt)
+cnt=regression1(cnt)
 cnt=regression1(cnt)
 polar_contour=[car2Pol([i,j],[cx,cy]) for [i,j] in cnt]
 draw(polar_contour,center)
