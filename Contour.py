@@ -17,7 +17,7 @@ def car2Pol(x,center):
 
 ##  Polar 2 Cartesian conversion...
 def pol2Car(x,center):
-    return [center[0]+x[1]*np.cos(x[0]),center[1]+x[1]*np.sin(x[0])]
+    return [center[0]+x[1]*np.cos(x[0]),center[1]-x[1]*np.sin(x[0])]
 
 
 ##  Draws a contour with the center specified...
@@ -41,23 +41,23 @@ def regression1(contour):
     points_counter = 0
     temp = contour.copy()
     size = len(contour)
-    print('before {}'.format(len(temp)))
+    #print('before {}'.format(len(temp)))
     i = 0
     points_counter = 0
     while i < size:
-        if ((temp[i+points_counter][0]-temp[i+points_counter-1][0])**2+(temp[i+points_counter][1]-temp[i+points_counter-1][1])**2)>2:
-            print('Points {} and {} : Distance = {}'.format(temp[i+points_counter],temp[i+points_counter-1],((temp[i+points_counter][0]-temp[i+points_counter-1][0])**2+(temp[i+points_counter][1]-temp[i+points_counter-1][1])**2)))
+        if ((temp[i+points_counter][0]-temp[i+points_counter-1][0])**2+(temp[i+points_counter][1]-temp[i+points_counter-1][1])**2)>3:
+            #print('Points {} and {} : Distance = {}'.format(temp[i+points_counter],temp[i+points_counter-1],((temp[i+points_counter][0]-temp[i+points_counter-1][0])**2+(temp[i+points_counter][1]-temp[i+points_counter-1][1])**2)))
             point=regressor1(temp[i+points_counter],temp[i+points_counter-1])
             #print(point)
             #print('index {} len {}'.format(i+points_counter,len(temp)))
             temp.insert(i+points_counter,point)
             points_counter+=1
         i+=1
-    print('after {}'.format(len(temp)))
+    #print('after {}'.format(len(temp)))
     size = len(temp)
-    return temp
+    return len(temp),temp
 
-im = cv2.imread('Sample2.jpg')
+im = cv2.imread('Sample3.jpg')
 imgray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
 ret,thresh = cv2.threshold(imgray,127,255,0)
 #  Finding contours...
@@ -75,9 +75,7 @@ def contourSclae(polar_contour, center, scale=1):
             image[i, j] = 255
     points = []
     for q in polar_contour:
-        print('***')
-        print(q)
-        point = pol2Car([q[0],q[1]*scale], center)
+        point = pol2Car([q[0]-np.pi/2,q[1]*scale], center)
         points.append(point)
         image[int(point[0]), int(point[1])] = 0
     #cv2.imshow('result', image)
@@ -89,8 +87,6 @@ def processContour(cnt):
     cx = int(M['m10']/M['m00'])
     cy = int(M['m01']/M['m00'])
     center=[cx,cy]
-    #print( M )
-    #print(cnt)
     imcontours = im.copy()
     cv2.circle(imcontours,(cx,cy),10,(0,255,0))
     cv2.drawContours(imcontours, contours, 1, (0,255,0), 3)
@@ -98,20 +94,19 @@ def processContour(cnt):
     cnt = np.reshape(cnt,(cnt.shape[0],cnt.shape[2]))
     cnt = np.ndarray.tolist(cnt)
     polar_contour = [car2Pol([i,j],[cx,cy]) for [i,j] in cnt]
-    polar_contour=contourSclae(polar_contour, center, 1)
-    polar_contour=regression1(polar_contour)
-    polar_contour=regression1(polar_contour)
-    polar_contour=regression1(polar_contour)
+    polar_contour=contourSclae(polar_contour, center, 1.4)
+    contour_len=len(cnt)
+    delta_len=len(cnt)
+    last_delta_len=10*delta_len
+    counter=0
+    while(abs(delta_len)>10 and counter<10):
+        counter+=1
+        last_contour_len = contour_len
+        contour_len, polar_contour=regression1(polar_contour)
+        delta_len = contour_len - last_contour_len
+        #print('last_delta {} delta {}'.format(last_delta_len,delta_len))
     drawContour(polar_contour)
-    '''
-    draw(polar_contour,center)
-    cnt=regression1(cnt)
-    cnt=regression1(cnt)
-    cnt=regression1(cnt)
-    cnt=regression1(cnt)
-    cnt=regression1(cnt)
-    polar_contour = [car2Pol([i,j], [cx,cy]) for [i,j] in cnt]
-    draw(polar_contour, center)
-    '''
-processContour(cnt)
+for i in range(0,len(contours)):
+    print(i)
+    processContour(contours[i])
 cv2.waitKey(0)
