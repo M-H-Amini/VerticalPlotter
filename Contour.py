@@ -92,7 +92,7 @@ def processContour(im,cnt, contour_center, page_size, scale):
     cv2.circle(imcontours,(int(page_size[1]/2),int(page_size[0]/2)),10,(255,0,0))
     cv2.drawContours(imcontours, cnt, 1, (0,255,0), 3)
     cv2.imshow('Contours',imcontours)
-    cv2.waitKey(0)
+    #cv2.waitKey(0)
     cnt = np.reshape(cnt,(cnt.shape[0],cnt.shape[2]))
     cnt = np.ndarray.tolist(cnt)
     polar_contour = [car2Pol([i,j],[cx,cy]) for [i,j] in cnt]
@@ -114,7 +114,7 @@ def processContour(im,cnt, contour_center, page_size, scale):
     return polar_contour
 
 
-im = cv2.imread('Sample5.jpg')
+im = cv2.imread('Sample3.jpg')
 imgray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
 ret,thresh = cv2.threshold(imgray,127,255,0)
 #  Finding contours...
@@ -128,7 +128,7 @@ contour_centers=[]
 page_size=[im.shape[0], im.shape[1]]
 page_center=[int(page_size[0]/2),int(page_size[1]/2)]
 scaled_contours=[]
-scale=1.5
+scale=2
 contours.remove(contours[0])
 for i in range(len(contours)):
     print('******{}*******'.format((i)))
@@ -137,7 +137,7 @@ for i in range(len(contours)):
     cy = int(M['m01']/M['m00'])
     center=[cx,cy]
     drawContour(contours[i],page_size,1)
-    cv2.waitKey(0)
+    #cv2.waitKey(0)
     #print('Original page center = {}'.format(page_center))
     #print('Original contour center is {}'.format(center))
     theta,r=car2Pol(center,page_center)
