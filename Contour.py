@@ -19,9 +19,8 @@ def car2Pol(x,center):
 
 ##  Polar 2 Cartesian conversion...
 def pol2Car(x,center):
+    #return [int(center[0]+x[1]*np.cos(x[0])),int(center[1]-x[1]*np.sin(x[0]))]
     return [int(center[0]+x[1]*np.cos(x[0])),int(center[1]+x[1]*np.sin(x[0]))]
-
-
 ##  Draws a contour with the center specified...
 def drawContour(polar_contours,page_size,scale):
     [m,n] = [int(page_size[0]*scale),int(page_size[1]*scale)]
@@ -33,7 +32,6 @@ def drawContour(polar_contours,page_size,scale):
         points = []
         for q in contour:
             image[int(q[1]), int(q[0])] = 0
-            #image[int(q[1]), int(q[0])] = 0
         cv2.imshow('result', image)
 
 
@@ -74,7 +72,7 @@ def contourScale(polar_contour, center, page_size , scale=1):
         #print('CS: original point: {}'.format(q))
         #print('CS: point: {}'.format(point))
         points.append(point)
-        image[int(point[0]), int(point[1])] = 0
+        #image[int(point[0]), int(point[1])] = 0
     #cv2.imshow('result', image)
     return points
 
@@ -113,25 +111,47 @@ def processContour(im,cnt, contour_center, page_size, scale):
     drawContour([polar_contour],page_size,scale)
     return polar_contour
 
+##  Image file name...
+filename='Sample6.jpg'
 
-im = cv2.imread('Sample3.jpg')
-imgray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
-ret,thresh = cv2.threshold(imgray,127,255,0)
-#  Finding contours...
-im2, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-print(im2.shape)
-#  Sorting contours...
-contours = sorted(contours, key=cv2.contourArea, reverse = True)[:10]
-cnt=contours[1]
-
-contour_centers=[]
+##  Reading the image...
+im = cv2.imread(filename)
 page_size=[im.shape[0], im.shape[1]]
 page_center=[int(page_size[0]/2),int(page_size[1]/2)]
+
+##  Denoising the image...
+dst = cv2.fastNlMeansDenoisingColored(im,None,10,10,7,21)
+cv2.imwrite('Denoised{}'.format(filename),dst)
+
+##  Grayscaling the image...
+imgray = cv2.cvtColor(dst,cv2.COLOR_BGR2GRAY)
+cv2.imwrite('Grayscale{}'.format(filename),imgray)
+
+##  Thresholding the image...
+thresh = cv2.adaptiveThreshold(imgray,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                               cv2.THRESH_BINARY,15,2)
+cv2.imwrite('Thresholded{}'.format(filename),thresh)
+
+##  Finding the image contours...
+im2, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+
+##  Sorting contours...
+contours = sorted(contours, key=cv2.contourArea, reverse = True)[:10]
+
+imcontours=im.copy()
+cv2.drawContours(imcontours, contours, -1, (0,255,0), 3)
+cv2.imwrite('Contours{}'.format(filename),imcontours)
+
+##  For storing original and scaled contours centers...
+contour_centers=[]
 scaled_contours=[]
-scale=2
-contours.remove(contours[0])
+
+##  Scaling factor...
+scale=1.5
+
+# contours.remove(contours[0])
 for i in range(len(contours)):
-    print('******{}*******'.format((i)))
+    print('******{}*******'.format(i))
     M = cv2.moments(contours[i])
     cx = int(M['m10']/M['m00'])
     cy = int(M['m01']/M['m00'])

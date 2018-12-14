@@ -1,11 +1,16 @@
 import cv2
 import numpy as np
 
-im = cv2.imread('Sample5.jpg')
-imgray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
+im = cv2.imread('Sample6.jpg')
+dst = cv2.fastNlMeansDenoisingColored(im,None,10,10,7,21)
+cv2.imshow('denoised',dst)
+cv2.waitKey(0)
+imgray = cv2.cvtColor(dst,cv2.COLOR_BGR2GRAY)
 cv2.imshow('gray',imgray)
 cv2.waitKey(0)
-ret,thresh = cv2.threshold(imgray,127,255,0)
+#ret,thresh = cv2.threshold(imgray,127,255,0)
+thresh = cv2.adaptiveThreshold(imgray,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                           cv2.THRESH_BINARY,15,2)
 cv2.imshow('thresh',thresh)
 cv2.waitKey(0)
 #  Finding contours...
